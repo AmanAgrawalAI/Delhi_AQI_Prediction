@@ -124,7 +124,7 @@ Delhi_AQI_Prediction/
 **Aman Kumar**
 Aspiring Data Scientist | Python · Machine Learning · Computer Vision
 
-[LinkedIn](https://www.linkedin.com/in/aman-kumar-788677378) • [GitHub](https://github.com/AmanAgrawalAI) • [Email](mailto:amanagrawal06922@gmail.com)
+[LinkedIn](https://www.linkedin.com/in/aman-kumar-788677378) • [GitHub](https://github.com/AmanAgrawalAI) • [Email](https://mail.google.com/mail/?view=cm&fs=1&to=amanagrawal06922@gmail.com)
 
 ---
 
