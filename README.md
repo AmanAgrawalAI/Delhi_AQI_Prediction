@@ -1,115 +1,131 @@
-# 🌫️ Delhi AQI Prediction
+# 🌫️ Delhi PM2.5 Prediction
 
-### Machine Learning Project for Air Quality Prediction
+Predicting hourly-scale **PM2.5 concentration (µg/m³)** in Delhi from pollutant and weather readings, using a Random Forest Regressor on a dataset of **10.3M+ records** from 43 monitoring-station files.
 
-This project predicts the **Air Quality Index (AQI) of Delhi** using Machine Learning. The model is trained on air quality data collected from multiple monitoring locations and uses environmental features to predict AQI values.
-
----
-
-## 🎯 Project Objective
-
-The objective of this project is to build a Machine Learning model that can predict the **Air Quality Index (AQI)** based on air pollution and environmental data.
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Pandas](https://img.shields.io/badge/Pandas-data%20processing-150458)
+![Scikit-learn](https://img.shields.io/badge/scikit--learn-ML-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
+
+## 📌 Problem Statement
+
+Delhi regularly faces severe air pollution, and PM2.5 is one of its most harmful pollutants. This project builds a regression model that estimates PM2.5 from other pollutant measurements (PM10, NO₂, CO, etc.), weather variables (humidity, temperature, wind) and time features.
 
 ## 📊 Dataset
 
-The project uses Delhi air quality datasets collected from multiple monitoring locations.
+| Item | Details |
+|---|---|
+| Files | 43 CSV files (`DL01.csv` – `DL43.csv`), one per monitoring station |
+| Raw size | 10,342,500 rows × 22 columns |
+| After cleaning | 10,329,521 rows (12,979 duplicate rows removed) |
+| Frequency | 15-minute readings, starting January 2009 |
+| Target | `pm2.5` |
+| Source | [add dataset link here] |
 
-The dataset includes information related to:
+**Features used (19):** `pm10`, `no`, `no2`, `so2`, `co`, `nox`, `ozone`, `nh3`, `benzene`, `toluene`, `rh`, `ws`, `wd`, `bp`, `at`, plus `year`, `month`, `day`, `hour` extracted from the timestamp.
 
-- Air pollution levels
-- Environmental measurements
-- AQI values
+## ⚙️ Methodology
 
-The data from multiple datasets was processed and combined for model training and evaluation.
-
----
-
-## 🤖 Machine Learning Model
-
-This project uses:
-
-- **Random Forest Regressor**
-
-The model was trained to learn patterns from air quality data and predict AQI values.
-
----
-
-## 📈 Model Performance
-
-- **R² Score:** 0.75
-- **Mean Absolute Error (MAE):** 24.34
-
-The model achieved a reasonable prediction performance on the test data.
-
----
-
-## 🛠️ Technologies Used
-
-- Python
-- Pandas
-- NumPy
-- Matplotlib
-- Scikit-learn
-- Jupyter Notebook
-
----
-
-## ⚙️ Project Workflow
+1. **Merged** all 43 station files into one DataFrame.
+2. **Dropped sparse columns** with more than 80% missing values: `vws`, `eth_benzene`, `mp_xylene`, `o_xylene`, `xylene`.
+3. **Handled missing values** with median imputation and **removed duplicate rows**.
+4. **Engineered time features** (year, month, day, hour) from the timestamp.
+5. **Sampled 200,000 rows** (random, `random_state=42`) for model training because of memory limits.
+6. **Split** the sample 80/20 into train and test sets.
+7. **Trained and compared** a Linear Regression baseline against a Random Forest Regressor (`n_estimators=50`).
+8. **Evaluated** with R² and MAE, and analysed feature importance.
 
 ```text
-Delhi Air Quality Data
-        ↓
-Data Cleaning
-        ↓
-Data Preprocessing
-        ↓
-Feature Selection
-        ↓
-Train-Test Split
-        ↓
-Random Forest Regression
-        ↓
-Model Evaluation
-        ↓
-AQI Prediction
+43 station CSVs → Merge → Drop sparse columns → Impute + de-duplicate
+      → Time features → 200K sample → Train/Test split
+      → Linear Regression (baseline) / Random Forest → Evaluation
 ```
 
-🚀 How to Run
+## 📈 Results
 
-1. Clone the repository
-   
- git clone https://github.com/AmanAgrawalAI/Delhi-AQI-Prediction.git
+Evaluated on the 40,000-row held-out test set:
 
-2. Navigate to the project folder
- 
- cd Delhi-AQI-Prediction
+| Model | R² Score | MAE (µg/m³) |
+|---|---|---|
+| Linear Regression (baseline) | 0.571 | 35.94 |
+| **Random Forest Regressor** | **0.751** | **24.34** |
 
-3. Install required libraries
+The Random Forest cuts the baseline's error by about 32% (MAE 35.94 → 24.34). For context, the mean PM2.5 in the raw data is roughly 104 µg/m³.
 
-   pip install pandas numpy matplotlib scikit-learn
+### Top features (Random Forest importance)
 
-4. Open the Jupyter Notebook
+| Rank | Feature | Importance |
+|---|---|---|
+| 1 | `pm10` | 54.8% |
+| 2 | `month` | 8.7% |
+| 3 | `at` (air temperature) | 3.4% |
+| 4 | `rh` (relative humidity) | 2.9% |
+| 5 | `nh3` | 2.6% |
 
-   jupyter notebook Delhi_AQI_Prediction.ipynb
+PM10 dominates, which is expected because it physically includes PM2.5 particles. The importance of `month` reflects Delhi's strong seasonal pattern (winter pollution peaks).
 
-📸 Project Results
+![Feature Importance]
+<img width="1210" height="722" alt="Screenshot 2026-08-25 214157" src="https://github.com/user-attachments/assets/029992b5-6b0e-4d48-bfc1-255786221add" />
 
-Project visualizations and model results are shown below.
-<img width="968" height="747" alt="Screenshot 2026-08-25 214250" src="https://github.com/user-attachments/assets/4aa14ac5-4c29-463b-9569-30427f8ad783" />
+![Actual vs Predicted]
+<img width="968" height="747" alt="Screenshot 2026-08-25 214250" src="https://github.com/user-attachments/assets/f2bddf78-d3ce-43c1-8942-3ab3aa7502a4" />
 
 
-🔮 Future Improvements
-Use larger and more recent air quality datasets
-Experiment with XGBoost and other regression models
-Improve feature engineering
-Add real-time AQI prediction
-Deploy the model as a web application
-👨‍💻 Author
+## ⚠️ Limitations
 
-Aman Agrawal
+- Models were trained on a **200K-row random sample**, not the full 10.3M rows.
+- A **random split** is used on time-series data, so the scores can be optimistic compared with a time-based split.
+- Missing values (including some target values) were filled with the median, and station identity was not kept as a feature.
+- No cross-validation or hyperparameter tuning has been done yet.
 
-Aspiring Data Scientist | Machine Learning & AI Enthusiast
+## 🔮 Future Work
+
+- [ ] Time-based train/test split and cross-validation
+- [ ] Drop rows with missing PM2.5 instead of imputing the target
+- [ ] Add a `station` feature and train on a larger sample
+- [ ] Hyperparameter tuning and comparison with XGBoost / LightGBM
+- [ ] Deploy as a simple Streamlit app
+
+## 🛠️ Tech Stack
+
+Python · Pandas · NumPy · Matplotlib · Scikit-learn · Joblib · Jupyter Notebook
+
+## 🚀 How to Run
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/AmanAgrawalAI/Delhi_AQI_Prediction.git
+cd Delhi_AQI_Prediction
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Place the dataset CSV files (DL01.csv ... DL43.csv) in the project folder
+
+# 4. Open the notebook
+jupyter notebook Delhi_AQI_Prediction.ipynb
+```
+
+## 📁 Project Structure
+
+```text
+Delhi_AQI_Prediction/
+├── Delhi_AQI_Prediction.ipynb   # Full analysis and modelling notebook
+├── images/                      # Result plots used in this README
+├── requirements.txt             # Python dependencies
+├── LICENSE                      # MIT License
+└── README.md
+```
+
+## 👨‍💻 Author
+
+**Aman Kumar**
+Aspiring Data Scientist | Python · Machine Learning · Computer Vision
+
+[LinkedIn](#) • [GitHub](https://github.com/AmanAgrawalAI) • [Email](#)
+
+---
 
 ⭐ If you found this project useful, consider giving it a star!
